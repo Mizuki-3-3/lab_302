@@ -1,0 +1,5 @@
+CompileFlags:
+    Add:
+    - -Iinclude
+    - -std=c++20
+    - -IC:\Users\kamila\labs\3_сем\lab_001\include
