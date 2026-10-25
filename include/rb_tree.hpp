@@ -14,6 +14,7 @@ private:
     compare_ comp;
     size_t size;
 //да начнутся итераторы
+
     class iterator{
         shared_ptr<node<T, K>> current;
         traverser<T, K> traverser_;
@@ -46,8 +47,42 @@ private:
         current = traverser_.prev(current);
         return tmp;
     }
-    shared_ptr<node<T, K>> get_last_(shared_ptr<node<T, K>> root_){return traverser_.get_last(root_);}//сюда можно только корень передавать, иначе атата
+    const shared_ptr<node<T, K>> get_node() const {return current;}
     };
+    class const_iterator{
+        shared_ptr<node<T, K>> current;
+        traverser<T, K> traverser_;
+    public:
+    explicit const_iterator(shared_ptr<node<T, K>> ptr, traverser<T, K> trav = lvr_traverser<T,K>()) noexcept: current(ptr), traverser_(trav){}//инордер по умолч
+    ~const_iterator() = default;
+    const T& operator*(){return current->value;}
+    const T* operator->()const {return &(current->value);}
+    bool operator==(const const_iterator& other) const {
+      return current == other.current;
+    }
+    bool operator!=(const iterator& other) const {
+      return !(*this == other);
+    }
+    const_iterator& operator++(){
+        current = traverser_.next(current);
+        return *this;
+    }
+    const_iterator operator++(int){
+        const_iterator tmp = *this;
+        current = traverser_.next(current);
+        return tmp;
+    }
+    const_iterator operator--(){
+        current = traverser_.prev(current);
+        return *this;
+    }
+    const_iterator operator--(int){
+        const_iterator tmp = *this;
+        current = traverser_.prev(current);
+        return tmp;
+    }
+    const shared_ptr<node<T, K>> get_node() const {return current;}
+};
 
 
     
@@ -168,29 +203,27 @@ private:
         }
         return shared_ptr<node<T, K>>();
     }
-    rb_tree(const node<T, K>& new_root){
-        root = shared_ptr<node<T, K>>::make_shared(new_root);
-        root.parent.reset();
-        root->RED = false;
-        size = 0;//TODO подумать как искать размер
-    }//оставлять в этом дереве или нет оч хороший вопрос на подумать
-
 public:
     rb_tree(): root(), size(0){}
     ~rb_tree()=default;
     rb_tree(const rb_tree& other){
-        root = shared_ptr<node<T, K>>::make_shared(*(other.root));
-        comp = other.comp;
-        size = other.size;
-
+        if (!other.root){return;}
+        root = other.root->copy();
+        auto curr = root;
+        for (auto it = other.begin(vlr_traverser<T, K>()); it!=other.end(vlr_traverser<T, K>()); it++){
+            curr->
+        }
     }
     //////////////////////////////////сначала итераторы чтоль бахнуть или стеком или обходом?
     bool operator==(rb_tree& other){
         if (size!=other.size) return false;
-        for (auto& x: *this){
-
+        for (const_iterator a = begin(), b = other.begin(); a!=end()&&b!=other.end(); a++, b++){
+            if (*(a.get_node())!=*(b.get_node())) return false;
         }
-
+        for (const_iterator a = begin(lrv_traverser<T, K>()), b = other.begin(lrv_traverser<T, K>()); a!=end(lrv_traverser<T, K>())&&b!=other.end(lrv_traverser<T, K>()); a++, b++){
+            if (*(a.get_node())!=*(b.get_node())) return false;
+        }//если деревья действительно равны то проверка займет 2n
+        return true;
     }
 
     shared_ptr<node<T, K>> insert(const K& KEY, const T& value){//при вставке возвращает указатель на то куда вставили 
@@ -316,7 +349,15 @@ void print_tree(){
 //поиск на вхождение поддерева сводим к извлечению поддерева (sub_tree) и сравения поддерева с исходным заданным (operator==)
 //сохранение в строку сделаем так: сброс прошивки, новая прошивка, затев обход дерева с функцией пуш в строку, возвращаем строку
 bool contains_sub_tree(const rb_tree& other) const{//TODO руализовать ==
+    if (size<other.size) return false;
     rb_tree maybe = sub_tree(other.root->key);
     return maybe==other;
 }
+
+    iterator end(traverser<T,K> traverse_ = lvr_traverser<T, K>()){return iterator(shared_ptr<node<T, K>>(), traverse_);}
+    const_iterator end(traverser<T,K> traverse_ = lvr_traverser<T, K>()) const {return const_iterator(shared_ptr<node<T, K>>(), traverse_);}
+
+    iterator begin(traverser<T,K> traverse_ = lvr_traverser<T, K>()){return iterator(traverse_.get_first(root), traverse_);}
+    const_iterator begin(traverser<T,K> traverse_ = lvr_traverser<T, K>())const{return iterator(traverse_.get_first(root), traverse_);}
+//на этой ноте и копирующий конструктор бахнуть не стыдно
 };

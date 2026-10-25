@@ -7,7 +7,10 @@ struct traverser{
     virtual shared_ptr<node<T, K>> next(shared_ptr<node<T, K>> noda) = 0;
     virtual shared_ptr<node<T, K>> prev(shared_ptr<node<T, K>> noda) = 0;
     virtual shared_ptr<node<T, K>> get_last(shared_ptr<node<T, K>> root);
+    virtual shared_ptr<node<T, K>> get_first(shared_ptr<node<T, K>> root);
 };
+
+//придумаю как избавиться от дублирования попозже, ща вообще не до этого
 
 template<typename T, typename K>
 struct lrv_traverser: public traverser<T, K>{//postorder
@@ -38,6 +41,15 @@ struct lrv_traverser: public traverser<T, K>{//postorder
     }
     return shared_ptr<node<T, K>>();
   }
+  shared_ptr<node<T,K>> get_first(shared_ptr<node<T, K>> root)override{
+        if(!root) return shared_ptr<node<T, K>>();
+        shared_ptr<node<T, K>> noda = root;
+        while (noda->right||noda->left){
+            while (noda->left) noda=noda->left;
+            if (noda->right) noda = noda->right;
+        }
+        return noda;
+    }
   shared_ptr<node<T,K>> get_last(shared_ptr<node<T, K>> root)override{return root;}
 };
 //обход можно реализвоать так: функция выбора первого, функция выбора следующего (это как раз итераторы и делают....)
@@ -85,6 +97,15 @@ struct lvr_traverser: public traverser<T, K>{//inorder
         return noda;
     }
 
+    shared_ptr<node<T,K>> get_first(shared_ptr<node<T, K>> root)override{
+        if(!root) return shared_ptr<node<T, K>>();
+        shared_ptr<node<T, K>> noda = root;
+        while (noda->left){
+            noda = noda->left;
+        }
+        return noda;
+    }
+
 };
 
 template<typename T, typename K>
@@ -125,6 +146,8 @@ struct vlr_traverser: public traverser<T, K>{//preorder
         }
         return noda;
     }
+    shared_ptr<node<T, K>> get_first(shared_ptr<node<T, K>> root)override{return root;}
+
 };
 
 
@@ -166,6 +189,8 @@ struct vrl_traverser: public traverser<T, K>{
         }
         return noda;
     }
+    shared_ptr<node<T, K>> get_first(shared_ptr<node<T, K>> root) override{return root;}
+
 };
 
 template<typename T, typename K>
@@ -210,6 +235,15 @@ struct rvl_traverser: public traverser<T, K>{
         }
         return noda;
     }
+    shared_ptr<node<T, K>> get_first(shared_ptr<node<T, K>> root) override{
+        if(!root) return shared_ptr<node<T, K>>();
+        shared_ptr<node<T, K>> noda = root;
+        while (noda->right){
+            noda = noda->right;
+        }
+        return noda;
+    }
+
 };
 
 template<typename T, typename K>
@@ -241,6 +275,15 @@ struct rlv_traverser: public traverser<T, K>{
     }
     return shared_ptr<node<T, K>>();
   }
+  shared_ptr<node<T,K>> get_first(shared_ptr<node<T, K>> root)override{
+        if(!root) return shared_ptr<node<T, K>>();
+        shared_ptr<node<T, K>> noda = root;
+        while (noda->right||noda->left){
+            while (noda->right) noda=noda->right;
+            if (noda->left) noda = noda->left;
+        }
+        return noda;
+    }
     shared_ptr<node<T,K>> get_last(shared_ptr<node<T, K>> root)override{return root;}
 
 };

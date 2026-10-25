@@ -24,7 +24,7 @@ public:
         shared_ptr<node> new_node = shared_ptr<node>::make_shared(value, key, RED);
         return new_node;
     }
-    bool operator==(node& other){
+    bool operator==(node& other) const{
         if (RED!=other.RED||key!=other.key||value!=other.value){return false;}
         return true;
     }
