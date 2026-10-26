@@ -6,6 +6,14 @@
 #include "errors.hpp"
 #include "node.hpp"
 #include "traversers.hpp"
+#include <concepts>
+#include <sstream>
+#include <string>
+
+template<typename V>
+concept ostreamable = requires(std::ostream& os, const V& v) {
+    { os << v } -> std::convertible_to<std::ostream&>;
+};
 
 template<typename T, typename K, compare<K> compare_>//если true то влево, а если false то вправо
 class rb_tree{//пусть у дефолтного красночерного будет только вставка удаление поиск, тогда обходы и итераторы реализуем в надстройке
@@ -211,7 +219,7 @@ public:
         root = other.root->copy();
         auto curr = root;
         for (auto it = other.begin(vlr_traverser<T, K>()); it!=other.end(vlr_traverser<T, K>()); it++){
-            curr->
+            
         }
     }
     //////////////////////////////////сначала итераторы чтоль бахнуть или стеком или обходом?
@@ -354,10 +362,20 @@ bool contains_sub_tree(const rb_tree& other) const{//TODO руализовать
     return maybe==other;
 }
 
-    iterator end(traverser<T,K> traverse_ = lvr_traverser<T, K>()){return iterator(shared_ptr<node<T, K>>(), traverse_);}
-    const_iterator end(traverser<T,K> traverse_ = lvr_traverser<T, K>()) const {return const_iterator(shared_ptr<node<T, K>>(), traverse_);}
+    iterator end(){return iterator(shared_ptr<node<T, K>>());}
+    const_iterator end() const {return const_iterator(shared_ptr<node<T, K>>());}
 
     iterator begin(traverser<T,K> traverse_ = lvr_traverser<T, K>()){return iterator(traverse_.get_first(root), traverse_);}
     const_iterator begin(traverser<T,K> traverse_ = lvr_traverser<T, K>())const{return iterator(traverse_.get_first(root), traverse_);}
 //на этой ноте и копирующий конструктор бахнуть не стыдно
+std::string to_string(const traverser<T, K>& t) const requires ostreamable<T> {
+    std::ostringstream os;
+    bool first = true;
+    for (auto it = begin(t); it != end(); ++it) {
+        if (!first) os << ' ';
+        first = false;
+        os << *it;
+    }
+    return os.str();
+}
 };
