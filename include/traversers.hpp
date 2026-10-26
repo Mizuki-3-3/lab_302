@@ -27,7 +27,6 @@ struct lrv_traverser: public traverser<T, K>{//postorder
     return noda;
   }
   shared_ptr<node<T, K>> prev(shared_ptr<node<T, K>> noda) override final {
-    // std::cout << "Postorder prev\n";
     if (!noda) return shared_ptr<node<T, K>>();
     if (noda->right) return noda->right;
     if (noda->left) return noda->left;

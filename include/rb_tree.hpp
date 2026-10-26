@@ -218,9 +218,17 @@ public:
         if (!other.root){return;}
         root = other.root->copy();
         auto curr = root;
-        for (auto it = other.begin(vlr_traverser<T, K>()); it!=other.end(vlr_traverser<T, K>()); it++){
-            
-        }
+        for (const_iterator it_for_this = begin(vlr_traverser<T, K>()), it = other.begin(vlr_traverser<T, K>());
+                                                                         it_for_this!=end(); it++, it_for_this++){
+            if (it.get_node()->left) {
+                it_for_this.get_node()->left = it.get_node()->left->copy();
+                it_for_this.get_node()->left->parent = it_for_this.get_node();
+            }
+            if (it.get_node()->right) {
+                it_for_this.get_node()->right = it.get_node()->right->copy();
+                it_for_this.get_node()->right->parent = it_for_this.get_node();
+            }
+        } 
     }
     //////////////////////////////////сначала итераторы чтоль бахнуть или стеком или обходом?
     bool operator==(rb_tree& other){
@@ -333,6 +341,33 @@ T search(const K& KEY){
     else{throw not_found("no such value in tree");}
 }
 //////////////////////////////////////////
+    template<typename F>
+    auto map(F f, const traverser<T, K>& t = lvr_traverser<T, K>()) const {
+        using U = std::remove_cvref_t<std::invoke_result_t<F&, const T&>>;
+        rb_tree<U, K, compare_> res;
+        order([&](const K& k, const T& v) { res.insert(k, f(v)); });
+        return res;
+    }
+    template <typename func, typename Acc>
+    requires std::invocable<func, const T>
+    Acc reduce(Acc res, func f){
+        order([&](const K&, const T& v){res=f(res, v);});
+        return res;
+    }
+    template <typename func>
+    rb_tree& where(func f){
+        rb_tree res;
+        order([&](const K& k, const T& v) { if (f(v)) res.insert(k, v); });
+        return res;
+    }
+    template <typename func>
+    void order(func f){
+        for(auto it = begin(); it!=end();it++){
+            auto n = it.get_node();
+            f(n->key, n->value);
+        }
+    }
+
 rb_tree sub_tree(const K& KEY){
     auto finded = search_(KEY);
     if (finded){return rb_tree(*finded);}
@@ -377,5 +412,15 @@ std::string to_string(const traverser<T, K>& t) const requires ostreamable<T> {
         os << *it;
     }
     return os.str();
+}
+
+static rb_tree from_pairs(const std::string& s)
+{
+    std::istringstream is(s);
+    rb_tree res;
+    K k; T v;
+    while (is >> k >> v) res.insert(k, v);
+    if (!is.eof()) throw std::invalid_argument("bad input format");
+    return res;
 }
 };
